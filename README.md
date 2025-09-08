@@ -36,8 +36,112 @@ STEP-5: Display the obtained cipher text.
 
 Program:
 
+```
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 5
+
+void generateMatrix(char key[], char matrix[SIZE][SIZE]) {
+    int dict[26] = {0};
+    int i, j, k = 0;
+    char ch;
+
+    dict['J' - 'A'] = 1;
 
 
+    for (i = 0; key[i]; i++) {
+        ch = toupper(key[i]);
+        if (ch < 'A' || ch > 'Z') continue;
+        if (ch == 'J') ch = 'I';
+        if (!dict[ch - 'A']) {
+            matrix[k / SIZE][k % SIZE] = ch;
+            dict[ch - 'A'] = 1;
+            k++;
+        }
+    }
 
+    for (ch = 'A'; ch <= 'Z'; ch++) {
+        if (!dict[ch - 'A']) {
+            matrix[k / SIZE][k % SIZE] = ch;
+            dict[ch - 'A'] = 1;
+            k++;
+        }
+    }
+}
+
+void search(char matrix[SIZE][SIZE], char ch, int pos[]) {
+    if (ch == 'J') ch = 'I';
+    for (int i = 0; i < SIZE; i++)
+        for (int j = 0; j < SIZE; j++)
+            if (matrix[i][j] == ch) {
+                pos[0] = i;
+                pos[1] = j;
+                return;
+            }
+}
+
+void encryptPair(char matrix[SIZE][SIZE], char a, char b, char result[]) {
+    int pos1[2], pos2[2];
+    search(matrix, a, pos1);
+    search(matrix, b, pos2);
+
+    if (pos1[0] == pos2[0]) { // same row
+        result[0] = matrix[pos1[0]][(pos1[1] + 1) % SIZE];
+        result[1] = matrix[pos2[0]][(pos2[1] + 1) % SIZE];
+    } else if (pos1[1] == pos2[1]) { // same column
+        result[0] = matrix[(pos1[0] + 1) % SIZE][pos1[1]];
+        result[1] = matrix[(pos2[0] + 1) % SIZE][pos2[1]];
+    } else { // rectangle
+        result[0] = matrix[pos1[0]][pos2[1]];
+        result[1] = matrix[pos2[0]][pos1[1]];
+    }
+}
+
+
+int main() {
+    char key[50], text[100], matrix[SIZE][SIZE], result[100];
+    int i, len, k = 0;
+
+    printf("Enter key: ");
+    scanf("%s", key);
+
+    generateMatrix(key, matrix);
+
+    printf("\nPlayfair Matrix:\n");
+    for (i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++)
+            printf("%c ", matrix[i][j]);
+        printf("\n");
+    }
+
+    printf("Enter plaintext: ");
+    scanf("%s", text);
+    len = strlen(text);
+
+
+    for (i = 0; i < len; i += 2) {
+        char a = toupper(text[i]);
+        char b = (i + 1 < len) ? toupper(text[i + 1]) : 'X';
+        if (a == b) b = 'X';
+        char enc[2];
+        encryptPair(matrix, a, b, enc);
+        result[k++] = enc[0];
+        result[k++] = enc[1];
+    }
+    result[k] = '\0';
+
+    printf("Ciphertext: %s\n", result);
+
+    return 0;
+}
+
+```
 
 Output:
+
+<img width="335" height="326" alt="Screenshot (448)" src="https://github.com/user-attachments/assets/342e7420-0097-4005-9622-874662d1745c" />
+
+RESULT:
+Program has been executed successfully
